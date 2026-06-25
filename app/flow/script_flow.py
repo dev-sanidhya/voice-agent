@@ -33,11 +33,16 @@ class ScriptFlow:
     step: str = "greeting"
     turns: int = field(default=0)
 
-    def greeting(self) -> str:
-        """First thing the agent says when the call connects."""
+    def greeting(self, direction: str = "outbound") -> str:
+        """First thing the agent says when the call connects.
+
+        Wording adapts to call direction: the caller dialed us (inbound) vs.
+        we dialed them (outbound).
+        """
         self.step = "await_help"
+        opener = "Thanks for calling" if direction == "inbound" else "Thanks for taking the call"
         return (
-            "Hello! Thanks for taking the call. This is an automated voice "
+            f"Hello! {opener}. This is an automated voice "
             "assistant. Can you hear me clearly? Please say yes or no."
         )
 

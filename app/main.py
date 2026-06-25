@@ -68,8 +68,12 @@ async def voice(request: Request):
     """TwiML webhook for both inbound calls and outbound answer."""
     host = _public_host(request)
     ws_url = f"wss://{host}/stream"
+    # Twilio sends Direction=inbound for incoming calls, outbound-api for
+    # calls we placed via REST.
+    form = await request.form()
+    direction = "inbound" if form.get("Direction") == "inbound" else "outbound"
     from .telephony.twilio_client import TwilioTelephony
-    twiml = TwilioTelephony.stream_twiml(ws_url)
+    twiml = TwilioTelephony.stream_twiml(ws_url, direction)
     return HTMLResponse(content=twiml, media_type="application/xml")
 
 
@@ -105,9 +109,11 @@ class CallSession:
         if event == "start":
             self.stream_sid = data["start"]["streamSid"]
             self.call_sid = data["start"].get("callSid")
-            log.info("stream start sid=%s call=%s", self.stream_sid, self.call_sid)
+            direction = data["start"].get("customParameters", {}).get("direction", "outbound")
+            log.info("stream start sid=%s call=%s direction=%s",
+                     self.stream_sid, self.call_sid, direction)
             await self.stt.start(self._on_transcript)
-            await self._say(self.flow.greeting())   # agent speaks first
+            await self._say(self.flow.greeting(direction))   # agent speaks first
         elif event == "media":
             payload = data["media"]["payload"]
             await self.stt.send_audio(base64.b64decode(payload))

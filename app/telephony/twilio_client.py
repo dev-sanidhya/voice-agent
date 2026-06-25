@@ -32,10 +32,15 @@ class TwilioTelephony:
         return call.sid
 
     @staticmethod
-    def stream_twiml(ws_url: str) -> str:
-        """TwiML: open a bidirectional media stream to our websocket."""
+    def stream_twiml(ws_url: str, direction: str = "outbound") -> str:
+        """TwiML: open a bidirectional media stream to our websocket.
+
+        The call direction is passed as a Stream <Parameter> so the websocket
+        handler can tailor the greeting (inbound vs outbound).
+        """
         response = VoiceResponse()
         connect = Connect()
-        connect.stream(url=ws_url)
+        stream = connect.stream(url=ws_url)
+        stream.parameter(name="direction", value=direction)
         response.append(connect)
         return str(response)
