@@ -22,6 +22,7 @@ import asyncio
 import base64
 import json
 import logging
+import sys
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -49,6 +50,7 @@ async def health():
         "stt": settings.stt_provider,
         "tts": settings.tts_provider,
         "telephony": settings.telephony_provider,
+        "python": sys.version,
     }
 
 
@@ -134,7 +136,11 @@ class CallSession:
         if self._closed:
             return
         async with self._speaking:
-            audio = await self.tts.synthesize(text, emotion)
+            try:
+                audio = await self.tts.synthesize(text, emotion)
+            except Exception:  # noqa: BLE001
+                log.exception("tts synthesis failed for: %s", text[:60])
+                return
             await self._send_audio(audio)
 
     async def _send_audio(self, mulaw: bytes) -> None:
