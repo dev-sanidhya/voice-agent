@@ -9,18 +9,21 @@ from dataclasses import dataclass
 
 # A single fixed sentence with enough emotional latitude to be delivered
 # convincingly in any mood - so emotion is the only thing that changes.
-_SENTENCE = "I just got your message about the order, and I really wanted to reach out to you about it."
+# Written in natural Delhi/NCR Hinglish (Hindi grammar + everyday English
+# loanwords in Devanagari - "message", "order" etc as commonly spoken there),
+# not literary/Sanskritized Hindi.
+_SENTENCE = "मुझे आपका मैसेज मिल गया था ऑर्डर के बारे में, और मैं सच में इस बारे में आपसे बात करना चाहती थी।"
 
 # Each emotion is announced by name (spoken in that emotion), then the same
 # sentence follows - making the contrast between providers obvious.
 LINES = [
-    ("Let's compare emotions. I'll say the same line five times, each with a different feeling.", "friendly"),
-    (f"Neutral. {_SENTENCE}", "neutral"),
-    (f"Friendly. {_SENTENCE}", "friendly"),
-    (f"Cheerful! {_SENTENCE}", "cheerful"),
-    (f"Empathetic. {_SENTENCE}", "empathetic"),
-    (f"Apologetic. {_SENTENCE}", "apologetic"),
-    ("That's the showcase. Goodbye!", "cheerful"),
+    ("चलिए इमोशन्स कंपेयर करते हैं। मैं एक ही लाइन को पांच बार बोलूंगी, हर बार एक अलग फीलिंग के साथ।", "friendly"),
+    (f"न्यूट्रल। {_SENTENCE}", "neutral"),
+    (f"फ्रेंडली। {_SENTENCE}", "friendly"),
+    (f"चीयरफुल! {_SENTENCE}", "cheerful"),
+    (f"एम्पैथेटिक। {_SENTENCE}", "empathetic"),
+    (f"सॉरी वाले अंदाज़ में। {_SENTENCE}", "apologetic"),
+    ("ये रहा हमारा शोकेस। अलविदा!", "cheerful"),
 ]
 
 

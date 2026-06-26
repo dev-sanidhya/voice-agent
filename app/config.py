@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     # STT (Deepgram)
     deepgram_api_key: str = ""
+    stt_language: str = "en-US"   # set to "hi" for Hindi caller speech
 
     # TTS (SiliconFlow)
     siliconflow_api_key: str = ""

@@ -17,23 +17,25 @@ from .base import OnTranscript
 
 log = logging.getLogger("stt.deepgram")
 
-_PARAMS = {
-    "model": "nova-2",
-    "language": "en-US",
-    "encoding": "mulaw",
-    "sample_rate": "8000",
-    "channels": "1",
-    "punctuate": "true",
-    "interim_results": "true",
-    "endpointing": "300",        # ms of silence => end of utterance
-    "utterance_end_ms": "1000",
-}
-_URL = "wss://api.deepgram.com/v1/listen?" + urlencode(_PARAMS)
+def _build_url(language: str) -> str:
+    params = {
+        "model": "nova-2",
+        "language": language,
+        "encoding": "mulaw",
+        "sample_rate": "8000",
+        "channels": "1",
+        "punctuate": "true",
+        "interim_results": "true",
+        "endpointing": "300",        # ms of silence => end of utterance
+        "utterance_end_ms": "1000",
+    }
+    return "wss://api.deepgram.com/v1/listen?" + urlencode(params)
 
 
 class DeepgramSTT:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, language: str = "en-US"):
         self._api_key = api_key
+        self._language = language
         self._ws = None
         self._recv_task: asyncio.Task | None = None
         self._keepalive_task: asyncio.Task | None = None
@@ -42,7 +44,7 @@ class DeepgramSTT:
     async def start(self, on_transcript: OnTranscript) -> None:
         self._on_transcript = on_transcript
         self._ws = await websockets.connect(
-            _URL, additional_headers={"Authorization": f"Token {self._api_key}"}
+            _build_url(self._language), additional_headers={"Authorization": f"Token {self._api_key}"}
         )
         self._recv_task = asyncio.create_task(self._receive_loop())
         self._keepalive_task = asyncio.create_task(self._keepalive_loop())

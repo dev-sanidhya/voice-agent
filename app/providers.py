@@ -11,7 +11,7 @@ def make_stt():
         from .stt.mock_stt import MockSTT
         return MockSTT()
     from .stt.deepgram_stt import DeepgramSTT
-    return DeepgramSTT(settings.deepgram_api_key)
+    return DeepgramSTT(settings.deepgram_api_key, settings.stt_language)
 
 
 def make_tts():
