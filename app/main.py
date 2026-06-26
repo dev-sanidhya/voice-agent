@@ -25,8 +25,9 @@ import logging
 import sys
 import traceback
 
+import httpx
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from .config import settings
 from .providers import make_stt, make_tts, make_telephony
@@ -45,6 +46,31 @@ _last_error: str | None = None
 @app.get("/debug/last-error")
 async def last_error():
     return {"last_error": _last_error}
+
+
+# --- Temporary: generate a Hindi sample from a smallest.ai voice (research) ---
+# Runs from Render (which can reach smallest.ai's Mumbai endpoint reliably,
+# unlike local). Separate from the live call path. Remove after voice pick.
+_SAMPLE_TOKEN = "vgensample"
+_SAMPLE_HINDI = "नमस्ते, मैं आपकी कॉल का जवाब देने के लिए यहाँ हूँ। बताइए, मैं आपकी कैसे मदद कर सकती हूँ?"
+
+
+@app.get("/admin/smallest-sample")
+async def smallest_sample(voice: str, t: str = ""):
+    if t != _SAMPLE_TOKEN:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
+    if not settings.smallest_api_key:
+        return JSONResponse({"error": "SMALLEST_API_KEY not set on server"}, status_code=400)
+    async with httpx.AsyncClient(timeout=60) as client:
+        r = await client.post(
+            "https://waves-api.smallest.ai/api/v1/lightning/get_speech",
+            headers={"Authorization": f"Bearer {settings.smallest_api_key}"},
+            json={"text": _SAMPLE_HINDI, "voice_id": voice,
+                  "sample_rate": 24000, "language": "hi", "output_format": "wav"},
+        )
+    if r.status_code != 200:
+        return JSONResponse({"error": r.text[:300], "status": r.status_code}, status_code=502)
+    return Response(content=r.content, media_type="audio/wav")
 
 
 def _public_host(request: Request) -> str:
