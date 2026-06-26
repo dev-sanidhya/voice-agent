@@ -168,22 +168,36 @@ class CallSession:
             await self._hangup()
 
     async def _say(self, text: str, emotion: str = "neutral") -> None:
-        """Synthesize text (with its pre-authored emotion), stream it, and
-        wait until it has actually finished playing on the call."""
+        """Speak text (with its pre-authored emotion) and wait until it has
+        actually finished playing on the call.
+
+        If the TTS provider supports streaming (a `stream()` method), audio is
+        forwarded to Twilio chunk-by-chunk as it's generated - the low-latency
+        path. Otherwise we synthesize the full clip first, then send."""
         if self._closed:
             return
         async with self._speaking:
+            total = 0
             try:
-                audio = await self.tts.synthesize(text, emotion)
+                streamer = getattr(self.tts, "stream", None)
+                if streamer is not None:
+                    async for chunk in streamer(text, emotion):
+                        if self._closed:
+                            break
+                        total += len(chunk)
+                        await self._send_audio(chunk)
+                else:
+                    audio = await self.tts.synthesize(text, emotion)
+                    total = len(audio)
+                    await self._send_audio(audio)
             except Exception:  # noqa: BLE001
                 global _last_error
                 _last_error = traceback.format_exc()
-                log.exception("tts synthesis failed for: %s", text[:60])
+                log.exception("tts failed for: %s", text[:60])
                 return
-            await self._send_audio(audio)
             # Block until Twilio confirms playback finished, so the next line
             # (or hang-up) doesn't overlap or truncate this one.
-            await self._await_playback(len(audio) / 8000.0)
+            await self._await_playback(total / 8000.0)
 
     async def _send_audio(self, mulaw: bytes) -> None:
         # Stream in 200ms frames into Twilio's buffer. No artificial pacing -

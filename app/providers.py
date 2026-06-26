@@ -31,6 +31,10 @@ def make_tts():
         from .tts.smallest_tts import SmallestTTS
         return SmallestTTS(settings.smallest_api_key, settings.tts_voice_smallest,
                            settings.tts_language_smallest)
+    if settings.tts_provider == "sarvam":
+        from .tts.sarvam_tts import SarvamTTS
+        return SarvamTTS(settings.sarvam_api_key, settings.tts_voice_sarvam,
+                         settings.tts_language_sarvam)
     from .tts.edge_tts import EdgeTTS
     return EdgeTTS(settings.tts_voice)
 

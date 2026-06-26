@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # TTS (smallest.ai - Hindi-native, low latency)
     smallest_api_key: str = ""
 
+    # TTS (Sarvam Bulbul - Hindi-native, streaming low latency)
+    sarvam_api_key: str = ""
+
     # Tunnel
     ngrok_authtoken: str = ""
 
@@ -47,6 +50,8 @@ class Settings(BaseSettings):
     tts_voice_openai: str = "alloy"
     tts_voice_smallest: str = "diya"   # Indian-accent Hindi+English voice
     tts_language_smallest: str = "hi"
+    tts_voice_sarvam: str = "priya"        # Bulbul v3 Hindi speaker
+    tts_language_sarvam: str = "hi-IN"
 
     # Server
     public_host: str = ""   # e.g. "abc123.ngrok-free.app" (no scheme); auto-filled if blank
