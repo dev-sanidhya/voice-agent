@@ -31,6 +31,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from .config import settings
 from .providers import make_stt, make_tts, make_telephony
 from .flow.script_flow import ScriptFlow
+from .flow.showcase_flow import ShowcaseFlow
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
@@ -58,6 +59,7 @@ async def health():
         "stt": settings.stt_provider,
         "tts": settings.tts_provider,
         "telephony": settings.telephony_provider,
+        "flow_mode": settings.flow_mode,
         "python": sys.version,
     }
 
@@ -111,6 +113,7 @@ class CallSession:
         self.stt = make_stt()
         self.tts = make_tts()
         self.flow = ScriptFlow()
+        self.showcase = ShowcaseFlow()
         self._speaking = asyncio.Lock()   # one utterance at a time
         self._closed = False
 
@@ -120,8 +123,11 @@ class CallSession:
             self.stream_sid = data["start"]["streamSid"]
             self.call_sid = data["start"].get("callSid")
             direction = data["start"].get("customParameters", {}).get("direction", "outbound")
-            log.info("stream start sid=%s call=%s direction=%s",
-                     self.stream_sid, self.call_sid, direction)
+            log.info("stream start sid=%s call=%s direction=%s mode=%s",
+                     self.stream_sid, self.call_sid, direction, settings.flow_mode)
+            if settings.flow_mode == "showcase":
+                asyncio.create_task(self._run_showcase())
+                return
             await self.stt.start(self._on_transcript)
             greeting = self.flow.greeting(direction)          # agent speaks first
             await self._say(greeting.reply, greeting.emotion)
@@ -131,6 +137,18 @@ class CallSession:
         elif event == "stop":
             log.info("stream stop")
             await self.close()
+
+    async def _run_showcase(self) -> None:
+        """Auto-play every showcase line back-to-back, then hang up."""
+        while True:
+            line = self.showcase.next_line()
+            if line is None:
+                break
+            text, emotion, is_last = line
+            await self._say(text, emotion)
+            await asyncio.sleep(0.6)  # brief gap between lines
+            if is_last:
+                await self._hangup()
 
     async def _on_transcript(self, transcript: str) -> None:
         """STT finalized an utterance -> run the deterministic flow."""

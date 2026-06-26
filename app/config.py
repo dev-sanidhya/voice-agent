@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     tts_provider: str = "edge"
     telephony_provider: str = "twilio"
 
+    # Flow selection: "script" (business demo, caller-driven) or
+    # "showcase" (auto-plays the same line in every emotion, no caller input)
+    flow_mode: str = "script"
+
     # TTS
     tts_voice: str = "en-US-AriaNeural"          # edge-tts voice
     tts_voice_deepgram: str = "aura-asteria-en"  # Deepgram Aura model
