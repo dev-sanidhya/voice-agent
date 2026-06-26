@@ -116,6 +116,10 @@ class CallSession:
         self.showcase = ShowcaseFlow()
         self._speaking = asyncio.Lock()   # one utterance at a time
         self._closed = False
+        # Twilio echoes a "mark" event back once buffered audio has actually
+        # finished playing - we use this to sequence speech with real pauses.
+        self._pending_marks: dict[str, asyncio.Future] = {}
+        self._mark_seq = 0
 
     async def on_message(self, data: dict) -> None:
         event = data.get("event")
@@ -134,6 +138,12 @@ class CallSession:
         elif event == "media":
             payload = data["media"]["payload"]
             await self.stt.send_audio(base64.b64decode(payload))
+        elif event == "mark":
+            # Audio queued before this mark has finished playing on the call.
+            name = data.get("mark", {}).get("name")
+            fut = self._pending_marks.pop(name, None)
+            if fut and not fut.done():
+                fut.set_result(True)
         elif event == "stop":
             log.info("stream stop")
             await self.close()
@@ -146,7 +156,7 @@ class CallSession:
                 break
             text, emotion, is_last = line
             await self._say(text, emotion)
-            await asyncio.sleep(0.6)  # brief gap between lines
+            await asyncio.sleep(0.8)  # real silent gap between lines
             if is_last:
                 await self._hangup()
 
@@ -158,7 +168,8 @@ class CallSession:
             await self._hangup()
 
     async def _say(self, text: str, emotion: str = "neutral") -> None:
-        """Synthesize text (with its pre-authored emotion) and stream it back."""
+        """Synthesize text (with its pre-authored emotion), stream it, and
+        wait until it has actually finished playing on the call."""
         if self._closed:
             return
         async with self._speaking:
@@ -170,19 +181,42 @@ class CallSession:
                 log.exception("tts synthesis failed for: %s", text[:60])
                 return
             await self._send_audio(audio)
+            # Block until Twilio confirms playback finished, so the next line
+            # (or hang-up) doesn't overlap or truncate this one.
+            await self._await_playback(len(audio) / 8000.0)
 
     async def _send_audio(self, mulaw: bytes) -> None:
-        # Send in ~1s chunks so playback starts quickly and supports barge-in.
-        for i in range(0, len(mulaw), 8000):
+        # Stream in 200ms frames into Twilio's buffer. No artificial pacing -
+        # playback timing is handled by _await_playback via mark events.
+        for i in range(0, len(mulaw), 1600):
             if self._closed:
                 return
-            chunk = mulaw[i:i + 8000]
+            chunk = mulaw[i:i + 1600]
             await self.ws.send_text(json.dumps({
                 "event": "media",
                 "streamSid": self.stream_sid,
                 "media": {"payload": base64.b64encode(chunk).decode("ascii")},
             }))
-            await asyncio.sleep(0.18)  # pace ~ realtime to avoid overrunning buffer
+
+    async def _await_playback(self, duration_s: float) -> None:
+        """Send a mark and wait for Twilio to echo it (= audio done playing).
+        Falls back to a duration-based timeout if the echo never arrives."""
+        if self._closed or self.stream_sid is None:
+            return
+        self._mark_seq += 1
+        name = f"m{self._mark_seq}"
+        fut: asyncio.Future = asyncio.get_running_loop().create_future()
+        self._pending_marks[name] = fut
+        await self.ws.send_text(json.dumps({
+            "event": "mark",
+            "streamSid": self.stream_sid,
+            "mark": {"name": name},
+        }))
+        try:
+            await asyncio.wait_for(fut, timeout=duration_s + 5.0)
+        except asyncio.TimeoutError:
+            self._pending_marks.pop(name, None)
+            log.warning("playback mark %s timed out", name)
 
     async def _hangup(self) -> None:
         # Let the goodbye finish, then end the call via REST (Connect/Stream

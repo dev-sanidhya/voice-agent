@@ -7,14 +7,20 @@ settings) can be A/B compared cleanly on one call.
 """
 from dataclasses import dataclass
 
-# (text, emotion) - identical text across emotions to isolate the variable.
+# A single fixed sentence with enough emotional latitude to be delivered
+# convincingly in any mood - so emotion is the only thing that changes.
+_SENTENCE = "I just got your message about the order, and I really wanted to reach out to you about it."
+
+# Each emotion is announced by name (spoken in that emotion), then the same
+# sentence follows - making the contrast between providers obvious.
 LINES = [
-    ("Here is the same sentence, spoken in a neutral tone.", "neutral"),
-    ("Here is the same sentence, spoken in a friendly tone.", "friendly"),
-    ("Here is the same sentence, spoken in a cheerful tone!", "cheerful"),
-    ("Here is the same sentence, spoken in an empathetic tone.", "empathetic"),
-    ("Here is the same sentence, spoken in an apologetic tone.", "apologetic"),
-    ("That concludes the emotion showcase. Goodbye!", "cheerful"),
+    ("Let's compare emotions. I'll say the same line five times, each with a different feeling.", "friendly"),
+    (f"Neutral. {_SENTENCE}", "neutral"),
+    (f"Friendly. {_SENTENCE}", "friendly"),
+    (f"Cheerful! {_SENTENCE}", "cheerful"),
+    (f"Empathetic. {_SENTENCE}", "empathetic"),
+    (f"Apologetic. {_SENTENCE}", "apologetic"),
+    ("That's the showcase. Goodbye!", "cheerful"),
 ]
 
 

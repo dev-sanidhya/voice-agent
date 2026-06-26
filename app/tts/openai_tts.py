@@ -19,13 +19,35 @@ _URL = "https://api.openai.com/v1/audio/speech"
 _SRC_RATE = 24000
 _DST_RATE = 8000
 
-# Pre-authored emotion -> steering instruction for gpt-4o-mini-tts.
+# Pre-authored emotion -> rich steering instruction for gpt-4o-mini-tts.
+# gpt-4o-mini-tts responds strongly to detailed affect/pacing/emphasis cues,
+# so each instruction describes voice affect, pacing, and intonation to make
+# the emotions clearly distinct from one another.
 _EMOTION_INSTRUCTIONS = {
-    "friendly": "Speak in a warm, friendly tone.",
-    "cheerful": "Speak with cheerfulness and enthusiasm.",
-    "empathetic": "Speak in an empathetic, understanding tone.",
-    "apologetic": "Speak in a soft, apologetic tone.",
-    "neutral": "Speak in a clear, neutral tone.",
+    "neutral": (
+        "Voice: calm, even, and professional. Pace: steady and measured. "
+        "Emotion: flat and matter-of-fact, like a clear announcement, no strong feeling."
+    ),
+    "friendly": (
+        "Voice: warm, approachable, and personable, with a smile in your voice. "
+        "Pace: relaxed and conversational. Intonation: gentle, with light upward lilts, "
+        "like talking to a friend you're happy to help."
+    ),
+    "cheerful": (
+        "Voice: bright, bubbly, and full of positive energy. Pace: lively and upbeat. "
+        "Emotion: genuinely excited and joyful, with noticeable enthusiasm and a big smile, "
+        "as if sharing great news."
+    ),
+    "empathetic": (
+        "Voice: soft, gentle, and caring. Pace: slow and unhurried, with thoughtful pauses. "
+        "Emotion: warm and deeply understanding, conveying genuine concern and reassurance, "
+        "as if comforting someone going through a hard time."
+    ),
+    "apologetic": (
+        "Voice: soft, sincere, and humble. Pace: slow and careful. "
+        "Emotion: genuinely regretful and remorseful, with a gentle, contrite tone, "
+        "as if offering a heartfelt apology."
+    ),
 }
 
 
