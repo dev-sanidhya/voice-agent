@@ -23,6 +23,7 @@ import base64
 import json
 import logging
 import sys
+import traceback
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -36,6 +37,13 @@ log = logging.getLogger("main")
 
 app = FastAPI(title="Voice Agent")
 telephony = make_telephony()
+
+_last_error: str | None = None
+
+
+@app.get("/debug/last-error")
+async def last_error():
+    return {"last_error": _last_error}
 
 
 def _public_host(request: Request) -> str:
@@ -139,6 +147,8 @@ class CallSession:
             try:
                 audio = await self.tts.synthesize(text, emotion)
             except Exception:  # noqa: BLE001
+                global _last_error
+                _last_error = traceback.format_exc()
                 log.exception("tts synthesis failed for: %s", text[:60])
                 return
             await self._send_audio(audio)
