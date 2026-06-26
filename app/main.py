@@ -61,13 +61,16 @@ async def smallest_sample(voice: str, t: str = ""):
         return JSONResponse({"error": "forbidden"}, status_code=403)
     if not settings.smallest_api_key:
         return JSONResponse({"error": "SMALLEST_API_KEY not set on server"}, status_code=400)
-    async with httpx.AsyncClient(timeout=60) as client:
-        r = await client.post(
-            "https://waves-api.smallest.ai/api/v1/lightning/get_speech",
-            headers={"Authorization": f"Bearer {settings.smallest_api_key}"},
-            json={"text": _SAMPLE_HINDI, "voice_id": voice,
-                  "sample_rate": 24000, "language": "hi", "output_format": "wav"},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=45) as client:
+            r = await client.post(
+                "https://waves-api.smallest.ai/api/v1/lightning/get_speech",
+                headers={"Authorization": f"Bearer {settings.smallest_api_key}"},
+                json={"text": _SAMPLE_HINDI, "voice_id": voice,
+                      "sample_rate": 24000, "language": "hi", "output_format": "wav"},
+            )
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"}, status_code=502)
     if r.status_code != 200:
         return JSONResponse({"error": r.text[:300], "status": r.status_code}, status_code=502)
     return Response(content=r.content, media_type="audio/wav")
