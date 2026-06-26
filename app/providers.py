@@ -35,6 +35,10 @@ def make_tts():
         from .tts.sarvam_tts import SarvamTTS
         return SarvamTTS(settings.sarvam_api_key, settings.tts_voice_sarvam,
                          settings.tts_language_sarvam)
+    if settings.tts_provider == "cartesia":
+        from .tts.cartesia_tts import CartesiaTTS
+        return CartesiaTTS(settings.cartesia_api_key, settings.tts_voice_cartesia,
+                           settings.tts_language_cartesia)
     from .tts.edge_tts import EdgeTTS
     return EdgeTTS(settings.tts_voice)
 

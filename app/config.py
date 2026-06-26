@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # TTS (Sarvam Bulbul - Hindi-native, streaming low latency)
     sarvam_api_key: str = ""
 
+    # TTS (Cartesia Sonic - sub-90ms streaming)
+    cartesia_api_key: str = ""
+
     # Tunnel
     ngrok_authtoken: str = ""
 
@@ -52,6 +55,8 @@ class Settings(BaseSettings):
     tts_language_smallest: str = "hi"
     tts_voice_sarvam: str = "priya"        # Bulbul v3 Hindi speaker
     tts_language_sarvam: str = "hi-IN"
+    tts_voice_cartesia: str = "95d51f79-c397-46f9-b49a-23763d3eaa2d"  # Arushi - Hinglish
+    tts_language_cartesia: str = "hi"
 
     # Server
     public_host: str = ""   # e.g. "abc123.ngrok-free.app" (no scheme); auto-filled if blank
