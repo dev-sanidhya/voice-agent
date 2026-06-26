@@ -24,6 +24,9 @@ def make_tts():
     if settings.tts_provider == "siliconflow":
         from .tts.siliconflow_tts import SiliconFlowTTS
         return SiliconFlowTTS(settings.siliconflow_api_key, settings.tts_voice_siliconflow)
+    if settings.tts_provider == "openai":
+        from .tts.openai_tts import OpenAITTS
+        return OpenAITTS(settings.openai_api_key, settings.tts_voice_openai)
     from .tts.edge_tts import EdgeTTS
     return EdgeTTS(settings.tts_voice)
 
