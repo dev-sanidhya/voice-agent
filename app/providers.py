@@ -27,6 +27,10 @@ def make_tts():
     if settings.tts_provider == "openai":
         from .tts.openai_tts import OpenAITTS
         return OpenAITTS(settings.openai_api_key, settings.tts_voice_openai)
+    if settings.tts_provider == "smallest":
+        from .tts.smallest_tts import SmallestTTS
+        return SmallestTTS(settings.smallest_api_key, settings.tts_voice_smallest,
+                           settings.tts_language_smallest)
     from .tts.edge_tts import EdgeTTS
     return EdgeTTS(settings.tts_voice)
 

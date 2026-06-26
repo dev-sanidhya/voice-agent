@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # TTS (OpenAI)
     openai_api_key: str = ""
 
+    # TTS (smallest.ai - Hindi-native, low latency)
+    smallest_api_key: str = ""
+
     # Tunnel
     ngrok_authtoken: str = ""
 
@@ -42,6 +45,8 @@ class Settings(BaseSettings):
     tts_voice_deepgram: str = "aura-asteria-en"  # Deepgram Aura model
     tts_voice_siliconflow: str = "FunAudioLLM/CosyVoice2-0.5B:anna"
     tts_voice_openai: str = "alloy"
+    tts_voice_smallest: str = "diya"   # Indian-accent Hindi+English voice
+    tts_language_smallest: str = "hi"
 
     # Server
     public_host: str = ""   # e.g. "abc123.ngrok-free.app" (no scheme); auto-filled if blank
