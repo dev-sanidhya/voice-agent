@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # STT (Deepgram)
     deepgram_api_key: str = ""
 
+    # TTS (SiliconFlow)
+    siliconflow_api_key: str = ""
+
     # Tunnel
     ngrok_authtoken: str = ""
 
@@ -29,6 +32,7 @@ class Settings(BaseSettings):
     # TTS
     tts_voice: str = "en-US-AriaNeural"          # edge-tts voice
     tts_voice_deepgram: str = "aura-asteria-en"  # Deepgram Aura model
+    tts_voice_siliconflow: str = "FunAudioLLM/CosyVoice2-0.5B:anna"
 
     # Server
     public_host: str = ""   # e.g. "abc123.ngrok-free.app" (no scheme); auto-filled if blank

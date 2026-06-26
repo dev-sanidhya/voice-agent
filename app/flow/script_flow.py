@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 
 @dataclass
 class FlowResult:
-    reply: str          # text to send to TTS
+    reply: str           # text to send to TTS
+    emotion: str = "neutral"   # pre-authored emotion tag for this line (no AI - fixed per branch)
     end_call: bool = False
 
 
@@ -33,7 +34,7 @@ class ScriptFlow:
     step: str = "greeting"
     turns: int = field(default=0)
 
-    def greeting(self, direction: str = "outbound") -> str:
+    def greeting(self, direction: str = "outbound") -> FlowResult:
         """First thing the agent says when the call connects.
 
         Wording adapts to call direction: the caller dialed us (inbound) vs.
@@ -41,9 +42,10 @@ class ScriptFlow:
         """
         self.step = "await_help"
         opener = "Thanks for calling" if direction == "inbound" else "Thanks for taking the call"
-        return (
+        return FlowResult(
             f"Hello! {opener}. This is an automated voice "
-            "assistant. Can you hear me clearly? Please say yes or no."
+            "assistant. Can you hear me clearly? Please say yes or no.",
+            emotion="friendly",
         )
 
     def handle(self, transcript: str) -> FlowResult:
@@ -54,7 +56,7 @@ class ScriptFlow:
         # Global hang-up intent works from any step.
         if _contains(text, _BYE):
             self.step = "done"
-            return FlowResult("No problem. Thank you for your time. Goodbye!", end_call=True)
+            return FlowResult("No problem. Thank you for your time. Goodbye!", emotion="cheerful", end_call=True)
 
         if self.step == "await_help":
             if _contains(text, _AFFIRM):
@@ -62,35 +64,44 @@ class ScriptFlow:
                 return FlowResult(
                     "Great, the audio is working. "
                     "You can ask about pricing, support, or business hours. "
-                    "Which one would you like?"
+                    "Which one would you like?",
+                    emotion="cheerful",
                 )
             if _contains(text, _DENY):
                 return FlowResult(
                     "Sorry about that. Let me try again - can you hear me now? "
-                    "Please say yes or no."
+                    "Please say yes or no.",
+                    emotion="apologetic",
                 )
-            return FlowResult("I didn't quite catch that. Please say yes or no - can you hear me?")
+            return FlowResult(
+                "I didn't quite catch that. Please say yes or no - can you hear me?",
+                emotion="empathetic",
+            )
 
         if self.step == "menu":
             if "pricing" in text.lower() or "price" in text.lower() or "cost" in text.lower():
                 return FlowResult(
                     "Our plans start at nineteen dollars per month. "
-                    "Anything else - support or business hours?"
+                    "Anything else - support or business hours?",
+                    emotion="friendly",
                 )
             if "support" in text.lower() or "help" in text.lower():
                 return FlowResult(
                     "Support is available twenty four seven by email and chat. "
-                    "Anything else - pricing or business hours?"
+                    "Anything else - pricing or business hours?",
+                    emotion="empathetic",
                 )
             if "hour" in text.lower() or "time" in text.lower() or "open" in text.lower():
                 return FlowResult(
                     "We are open Monday to Friday, nine to six. "
-                    "Anything else - pricing or support?"
+                    "Anything else - pricing or support?",
+                    emotion="friendly",
                 )
             return FlowResult(
                 "I can tell you about pricing, support, or business hours. "
-                "Which one?"
+                "Which one?",
+                emotion="neutral",
             )
 
         # Fallback
-        return FlowResult("I'm not sure I understood. Could you repeat that?")
+        return FlowResult("I'm not sure I understood. Could you repeat that?", emotion="apologetic")

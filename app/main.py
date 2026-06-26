@@ -113,7 +113,8 @@ class CallSession:
             log.info("stream start sid=%s call=%s direction=%s",
                      self.stream_sid, self.call_sid, direction)
             await self.stt.start(self._on_transcript)
-            await self._say(self.flow.greeting(direction))   # agent speaks first
+            greeting = self.flow.greeting(direction)          # agent speaks first
+            await self._say(greeting.reply, greeting.emotion)
         elif event == "media":
             payload = data["media"]["payload"]
             await self.stt.send_audio(base64.b64decode(payload))
@@ -124,16 +125,16 @@ class CallSession:
     async def _on_transcript(self, transcript: str) -> None:
         """STT finalized an utterance -> run the deterministic flow."""
         result = self.flow.handle(transcript)
-        await self._say(result.reply)
+        await self._say(result.reply, result.emotion)
         if result.end_call:
             await self._hangup()
 
-    async def _say(self, text: str) -> None:
-        """Synthesize text and stream it back to the caller."""
+    async def _say(self, text: str, emotion: str = "neutral") -> None:
+        """Synthesize text (with its pre-authored emotion) and stream it back."""
         if self._closed:
             return
         async with self._speaking:
-            audio = await self.tts.synthesize(text)
+            audio = await self.tts.synthesize(text, emotion)
             await self._send_audio(audio)
 
     async def _send_audio(self, mulaw: bytes) -> None:

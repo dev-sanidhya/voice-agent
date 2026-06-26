@@ -21,6 +21,9 @@ def make_tts():
     if settings.tts_provider == "deepgram":
         from .tts.deepgram_tts import DeepgramTTS
         return DeepgramTTS(settings.deepgram_api_key, settings.tts_voice_deepgram)
+    if settings.tts_provider == "siliconflow":
+        from .tts.siliconflow_tts import SiliconFlowTTS
+        return SiliconFlowTTS(settings.siliconflow_api_key, settings.tts_voice_siliconflow)
     from .tts.edge_tts import EdgeTTS
     return EdgeTTS(settings.tts_voice)
 

@@ -14,7 +14,7 @@ class MockTTS:
     def __init__(self, *_args, **_kwargs):
         pass
 
-    async def synthesize(self, text: str) -> bytes:
+    async def synthesize(self, text: str, emotion: str = "neutral") -> bytes:
         # ~150 words/min -> approximate duration from word count.
         words = max(1, len(text.split()))
         seconds = max(1.0, words / 2.5)

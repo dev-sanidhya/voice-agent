@@ -16,7 +16,7 @@ class EdgeTTS:
     def __init__(self, voice: str = "en-US-AriaNeural"):
         self.voice = voice
 
-    async def synthesize(self, text: str) -> bytes:
+    async def synthesize(self, text: str, emotion: str = "neutral") -> bytes:
         """Return raw mu-law 8kHz mono audio for the given text."""
         communicate = edge_tts.Communicate(text, self.voice)
         mp3 = bytearray()

@@ -23,7 +23,7 @@ class DeepgramTTS:
         self._api_key = api_key
         self._model = model
 
-    async def synthesize(self, text: str) -> bytes:
+    async def synthesize(self, text: str, emotion: str = "neutral") -> bytes:
         return await asyncio.to_thread(self._sync_synthesize, text)
 
     def _sync_synthesize(self, text: str) -> bytes:
