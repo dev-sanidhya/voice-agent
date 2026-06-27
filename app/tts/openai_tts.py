@@ -58,7 +58,13 @@ class OpenAITTS:
 
     async def synthesize(self, text: str, emotion: str = "neutral") -> bytes:
         """Return raw mu-law 8kHz mono audio for the given text + emotion."""
-        instructions = _EMOTION_INSTRUCTIONS.get(emotion, _EMOTION_INSTRUCTIONS["neutral"])
+        emo = _EMOTION_INSTRUCTIONS.get(emotion, _EMOTION_INSTRUCTIONS["neutral"])
+        # Cue a fluent, native Hindi delivery so the Hindi tone sounds natural
+        # rather than accented English-Hindi.
+        instructions = (
+            "Speak as a fluent, native Hindi speaker with a natural Indian accent "
+            "and authentic Hindi pronunciation. " + emo
+        )
 
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
