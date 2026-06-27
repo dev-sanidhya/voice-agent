@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # TTS (Cartesia Sonic - sub-90ms streaming)
     cartesia_api_key: str = ""
 
+    # TTS (Inworld TTS-2 - Hindi, emotion steering, streaming)
+    inworld_api_key: str = ""
+
     # Tunnel
     ngrok_authtoken: str = ""
 
@@ -57,6 +60,7 @@ class Settings(BaseSettings):
     tts_language_sarvam: str = "hi-IN"
     tts_voice_cartesia: str = "95d51f79-c397-46f9-b49a-23763d3eaa2d"  # Arushi - Hinglish
     tts_language_cartesia: str = "hi"
+    tts_voice_inworld: str = "Riya"   # Hindi, call-center tagged
 
     # Server
     public_host: str = ""   # e.g. "abc123.ngrok-free.app" (no scheme); auto-filled if blank

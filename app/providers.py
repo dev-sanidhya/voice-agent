@@ -39,6 +39,9 @@ def make_tts():
         from .tts.cartesia_tts import CartesiaTTS
         return CartesiaTTS(settings.cartesia_api_key, settings.tts_voice_cartesia,
                            settings.tts_language_cartesia)
+    if settings.tts_provider == "inworld":
+        from .tts.inworld_tts import InworldTTS
+        return InworldTTS(settings.inworld_api_key, settings.tts_voice_inworld)
     from .tts.edge_tts import EdgeTTS
     return EdgeTTS(settings.tts_voice)
 
